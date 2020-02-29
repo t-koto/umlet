@@ -1,5 +1,6 @@
 package com.baselet.element.relation;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -140,6 +141,10 @@ public class Relation extends NewGridElement implements Stickable, RelationPoint
 		List<PointDoubleIndexed> updatedChangedList = relationPoints.movePointAndResizeRectangle(changedStickPoints);
 		updateModelFromText();
 		return updatedChangedList;
+	}
+
+	public void moveLinePoint(int linePointId, int xDiff, int yDiff) {
+		movePoints(Arrays.asList(new PointChange(linePointId, xDiff, yDiff)));
 	}
 
 	@Override

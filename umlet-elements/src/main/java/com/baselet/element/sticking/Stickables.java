@@ -158,7 +158,7 @@ public class Stickables {
 		return changeMatchingLowestDistance;
 	}
 
-	private static PointDouble getAbsolutePosition(Stickable stickable, PointDouble pd) {
+	public static PointDouble getAbsolutePosition(Stickable stickable, PointDouble pd) {
 		// the points are located relative to the upper left corner of the relation, therefore add this corner to have it located to the upper left corner of the diagram
 		int x = stickable.getRealRectangle().getX() + pd.getX().intValue();
 		int y = stickable.getRealRectangle().getY() + pd.getY().intValue();

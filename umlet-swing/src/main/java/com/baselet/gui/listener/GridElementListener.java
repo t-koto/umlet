@@ -3,8 +3,12 @@ package com.baselet.gui.listener;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -29,7 +33,8 @@ import com.baselet.element.ElementFactorySwing;
 import com.baselet.element.facet.common.GroupFacet;
 import com.baselet.element.interfaces.CursorOwn;
 import com.baselet.element.interfaces.GridElement;
-import com.baselet.element.old.element.Relation;
+import com.baselet.element.relation.Relation;
+import com.baselet.element.sticking.PointDoubleIndexed;
 import com.baselet.element.sticking.StickableMap;
 import com.baselet.element.sticking.Stickables;
 import com.baselet.element.sticking.StickingPolygon;
@@ -39,6 +44,7 @@ import com.baselet.gui.command.Command;
 import com.baselet.gui.command.Macro;
 import com.baselet.gui.command.Move;
 import com.baselet.gui.command.MoveEnd;
+import com.baselet.gui.command.MoveLinePoint;
 import com.baselet.gui.command.OldMoveLinePoint;
 import com.baselet.gui.command.OldRelationLinePoint;
 import com.baselet.gui.command.OldResize;
@@ -284,7 +290,12 @@ public class GridElementListener extends UniversalListener {
 	static Vector<Command> calculateFirstMoveCommands(int diffx, int diffy, Point oldp, Collection<GridElement> entitiesToBeMoved, boolean isShiftKeyDown, boolean useSetLocation, DiagramHandler handler, Set<Direction> directions) {
 		Vector<Move> moveCommands = new Vector<Move>();
 		Vector<OldMoveLinePoint> linepointCommands = new Vector<OldMoveLinePoint>();
-		List<com.baselet.element.relation.Relation> stickables = handler.getDrawPanel().getStickables(entitiesToBeMoved);
+		List<com.baselet.element.relation.Relation> stickables;
+		if (directions.isEmpty()) {
+			stickables = Collections.emptyList();	/* Don't handle stickables here. */
+		} else {
+			stickables = handler.getDrawPanel().getStickables(entitiesToBeMoved);
+		}
 		for (GridElement ge : entitiesToBeMoved) {
 			// reduce stickables to those which really stick at the element at move-start
 			StickableMap stickingStickables = Stickables.getStickingPointsWhichAreConnectedToStickingPolygon(ge.generateStickingBorder(), stickables);
@@ -295,6 +306,42 @@ public class GridElementListener extends UniversalListener {
 		Vector<Command> allCommands = new Vector<Command>();
 		allCommands.addAll(moveCommands);
 		allCommands.addAll(linepointCommands);
+
+		if (directions.isEmpty() && SharedConfig.getInstance().isStickingEnabled() && !(handler instanceof PaletteHandler)) {
+			/* Handle stickables and selected joints. */
+			LinkedHashMap<Relation, BitSet> joints = new LinkedHashMap<Relation, BitSet>();
+			for (GridElement e : handler.getDrawPanel().getGridElements()) {
+				if (!(e instanceof Relation))
+					continue;
+				Relation r = (Relation) e;
+
+				for (GridElement ge : entitiesToBeMoved) {
+					StickingPolygon stickingPolygon = ge.generateStickingBorder();
+
+					for (PointDoubleIndexed joint : r.getStickablePoints()) {
+						BitSet bitSet = joints.get(r);
+						if (bitSet != null && bitSet.get(joint.getIndex()))
+							continue;
+
+						if (stickingPolygon.isConnected(Stickables.getAbsolutePosition(r, joint), handler.getGridSize()) >= 0) {
+							if (bitSet == null) {
+								bitSet = new BitSet();
+								joints.put(r, bitSet);
+							}
+							bitSet.set(joint.getIndex());
+						}
+					}
+				}
+			}
+			for (Map.Entry<Relation, BitSet> entry : joints.entrySet()) {
+				BitSet bs = entry.getValue();
+				for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i+1)) {
+					float zoomFactor = handler.getZoomFactor();
+					allCommands.add(new MoveLinePoint(entry.getKey(), i, Math.round(diffx / handler.getZoomFactor()), Math.round(diffy / handler.getZoomFactor())));
+				}
+			}
+		}
+
 		return allCommands;
 	}
 
@@ -302,7 +349,7 @@ public class GridElementListener extends UniversalListener {
 	@Deprecated
 	private static void handleStickingOfOldRelation(int diffx, int diffy, Collection<GridElement> entitiesToBeMoved, DiagramHandler handler, Set<Direction> directions, Vector<OldMoveLinePoint> linepointCommands, GridElement ge) {
 		boolean stickingDisabled = !SharedConfig.getInstance().isStickingEnabled() || handler instanceof PaletteHandler;
-		if (!(ge instanceof Relation || stickingDisabled)) {
+		if (!(ge instanceof com.baselet.element.old.element.Relation || stickingDisabled)) {
 			StickingPolygon stick = ge.generateStickingBorder();
 			if (stick != null && directions.isEmpty()) { // sticking on resizing is disabled for old relations
 				Vector<OldRelationLinePoint> affectedRelationPoints = OldResize.getStickingRelationLinePoints(handler, stick);
@@ -331,6 +378,10 @@ public class GridElementListener extends UniversalListener {
 			if (command instanceof Move) {
 				Move m = (Move) command;
 				tmpVector.add(new Move(resizeDirections, m.getEntity(), diffx, diffy, oldp, m.isShiftKeyDown(), FIRST_DRAG, useSetLocation, m.getStickables()));
+			}
+			else if (command instanceof MoveLinePoint) {
+				MoveLinePoint m = (MoveLinePoint) command;
+				tmpVector.add(new MoveLinePoint(m.getRelation(), m.getLinePointId(), Math.round(diffx / handler.getZoomFactor()), Math.round(diffy / handler.getZoomFactor())));
 			}
 			else if (command instanceof OldMoveLinePoint) {
 				OldMoveLinePoint m = (OldMoveLinePoint) command;
