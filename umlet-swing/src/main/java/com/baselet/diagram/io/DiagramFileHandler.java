@@ -219,7 +219,7 @@ public class DiagramFileHandler {
 
 			Element root = doc.createElement("diagram");
 			root.setAttribute("program", Program.getInstance().getProgramName().toLowerCase());
-			root.setAttribute("version", String.valueOf(Program.getInstance().getVersion()));
+			root.setAttribute("version", String.valueOf(Program.getInstance().getSaveVersion()));
 			doc.appendChild(root);
 
 			// save helptext
