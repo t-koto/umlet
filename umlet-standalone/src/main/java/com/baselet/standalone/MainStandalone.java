@@ -161,9 +161,9 @@ public class MainStandalone {
 	}
 
 	private static void startStandalone(String filenameToOpen) {
-		if (Config.getInstance().isCheckForUpdates()) {
+		/*if (Config.getInstance().isCheckForUpdates()) {
 			new Timer("Update Checker", true).schedule(UpdateCheckTimerTask.getInstance(), 0);
-		}
+		}*/
 		Main.getInstance().init(new StandaloneGUI(Main.getInstance(), tmpFile()));
 		if (filenameToOpen == null) {
 			Main.getInstance().doNew();
