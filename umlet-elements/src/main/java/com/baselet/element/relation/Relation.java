@@ -187,4 +187,7 @@ public class Relation extends NewGridElement implements Stickable, RelationPoint
 		}
 	}
 
+	public List<PointDoubleIndexed> getLinePoints() {
+		return relationPoints.getLinePoints();
+	}
 }

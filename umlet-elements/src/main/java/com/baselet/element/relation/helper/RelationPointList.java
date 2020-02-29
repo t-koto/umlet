@@ -220,4 +220,12 @@ public class RelationPointList {
 		}
 		return rectangleContainingAllPointsAndTextSpace;
 	}
+
+	public List<PointDoubleIndexed> getLinePoints() {
+		List<PointDoubleIndexed> result = new ArrayList<PointDoubleIndexed>(points.size());
+		for (RelationPoint point : points) {
+			result.add(point.getPoint());
+		}
+		return result;
+	}
 }

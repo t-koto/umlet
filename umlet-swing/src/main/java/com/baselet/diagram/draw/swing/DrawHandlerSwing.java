@@ -8,6 +8,8 @@ import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
+import java.util.BitSet;
+import java.util.List;
 
 import com.baselet.control.StringStyle;
 import com.baselet.control.basics.Converter;
@@ -22,6 +24,9 @@ import com.baselet.diagram.draw.DrawHandler;
 import com.baselet.diagram.draw.helper.ColorOwn;
 import com.baselet.diagram.draw.helper.Style;
 import com.baselet.element.interfaces.GridElement;
+import com.baselet.element.relation.Relation;
+import com.baselet.element.relation.helper.RelationPointConstants;
+import com.baselet.element.sticking.PointDoubleIndexed;
 
 public class DrawHandlerSwing extends DrawHandler {
 
@@ -212,5 +217,28 @@ public class DrawHandlerSwing extends DrawHandler {
 
 	public void setTranslate(boolean translate) {
 		this.translate = translate;
+	}
+
+	private static final Style SELECTED_JOINT_STYLE = new Style();
+	static {
+		SELECTED_JOINT_STYLE.setForegroundColor(ColorOwn.SELECTION_FG);
+		SELECTED_JOINT_STYLE.setBackgroundColor(ColorOwn.SELECTION_BG);
+	}
+	public void drawSelectedJoint(Relation relation, BitSet selectedJoints) {
+		List<PointDoubleIndexed> joints = relation.getLinePoints();
+		int index = 0;
+		for (PointDoubleIndexed joint : joints) {
+			if (selectedJoints.get(index)) {
+				int radius = RelationPointConstants.POINT_SELECTION_RADIUS / 2;
+				double widthAndHeight = radius * 2;
+				double x = joint.x - radius;
+				double y = joint.y - radius;
+				double xZoomed = x * getZoom() + HALF_PX;
+				double yZoomed = y * getZoom() + HALF_PX;
+				Ellipse2D.Double shape = new Ellipse2D.Double(xZoomed, yZoomed, inBorderHorizontal(widthAndHeight * getZoom(), xZoomed), inBorderVertical(widthAndHeight * getZoom(), yZoomed));
+				drawShape(SELECTED_JOINT_STYLE, shape, false);
+			}
+			index++;
+		}
 	}
 }

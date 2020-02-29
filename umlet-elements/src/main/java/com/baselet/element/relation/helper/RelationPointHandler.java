@@ -203,4 +203,7 @@ public class RelationPointHandler implements ResizableObject {
 		return points.toString();
 	}
 
+	public List<PointDoubleIndexed> getLinePoints() {
+		return points.getLinePoints();
+	}
 }

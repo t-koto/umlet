@@ -29,6 +29,7 @@ import com.baselet.diagram.CurrentDiagram;
 import com.baselet.diagram.DiagramHandler;
 import com.baselet.diagram.PaletteHandler;
 import com.baselet.diagram.SelectorFrame;
+import com.baselet.diagram.SelectorOld;
 import com.baselet.element.ElementFactorySwing;
 import com.baselet.element.facet.common.GroupFacet;
 import com.baselet.element.interfaces.CursorOwn;
@@ -277,7 +278,7 @@ public class GridElementListener extends UniversalListener {
 		}
 		if (FIRST_MOVE_COMMANDS == null) {
 			POINT_BEFORE_MOVE = mousePressedPoint; // issue #358: use position of mouse click BEFORE starting to drag; must be exact coordinates eg for Relation which calculates distances from lines (to possibly drag new points out of it)
-			FIRST_MOVE_COMMANDS = calculateFirstMoveCommands(diffx, diffy, POINT_BEFORE_MOVE, elementsToMove, isShiftKeyDown, false, handler, resizeDirections);
+			FIRST_MOVE_COMMANDS = calculateFirstMoveCommands(selector, diffx, diffy, POINT_BEFORE_MOVE, elementsToMove, isShiftKeyDown, false, handler, resizeDirections);
 		}
 		else if (diffx != 0 || diffy != 0) {
 			Vector<Command> commands = continueDragging(diffx, diffy, POINT_BEFORE_MOVE, elementsToMove);
@@ -287,7 +288,7 @@ public class GridElementListener extends UniversalListener {
 		}
 	}
 
-	static Vector<Command> calculateFirstMoveCommands(int diffx, int diffy, Point oldp, Collection<GridElement> entitiesToBeMoved, boolean isShiftKeyDown, boolean useSetLocation, DiagramHandler handler, Set<Direction> directions) {
+	static Vector<Command> calculateFirstMoveCommands(SelectorOld selector, int diffx, int diffy, Point oldp, Collection<GridElement> entitiesToBeMoved, boolean isShiftKeyDown, boolean useSetLocation, DiagramHandler handler, Set<Direction> directions) {
 		Vector<Move> moveCommands = new Vector<Move>();
 		Vector<OldMoveLinePoint> linepointCommands = new Vector<OldMoveLinePoint>();
 		List<com.baselet.element.relation.Relation> stickables;
@@ -303,13 +304,14 @@ public class GridElementListener extends UniversalListener {
 
 			handleStickingOfOldRelation(diffx, diffy, entitiesToBeMoved, handler, directions, linepointCommands, ge);
 		}
+
 		Vector<Command> allCommands = new Vector<Command>();
 		allCommands.addAll(moveCommands);
 		allCommands.addAll(linepointCommands);
 
 		if (directions.isEmpty() && SharedConfig.getInstance().isStickingEnabled() && !(handler instanceof PaletteHandler)) {
 			/* Handle stickables and selected joints. */
-			LinkedHashMap<Relation, BitSet> joints = new LinkedHashMap<Relation, BitSet>();
+			LinkedHashMap<Relation, BitSet> joints = selector.cloneSelectedRelationJoints();
 			for (GridElement e : handler.getDrawPanel().getGridElements()) {
 				if (!(e instanceof Relation))
 					continue;

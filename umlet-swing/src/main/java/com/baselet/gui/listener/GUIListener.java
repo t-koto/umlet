@@ -82,7 +82,7 @@ public class GUIListener implements KeyListener {
 					}
 
 					Point opos = getOriginalPos(diffx, diffy, entitiesToBeMoved.iterator().next());
-					Vector<Command> ALL_MOVE_COMMANDS = GridElementListener.calculateFirstMoveCommands(diffx, diffy, opos, entitiesToBeMoved, e.isShiftDown(), true, handler, Collections.<Direction> emptySet());
+					Vector<Command> ALL_MOVE_COMMANDS = GridElementListener.calculateFirstMoveCommands(handler.getDrawPanel().getSelector(), diffx, diffy, opos, entitiesToBeMoved, e.isShiftDown(), true, handler, Collections.<Direction> emptySet());
 					handler.getController().executeCommand(new Macro(ALL_MOVE_COMMANDS));
 					CurrentDiagram.getInstance().getDiagramHandler().getDrawPanel().updatePanelAndScrollbars();
 				}

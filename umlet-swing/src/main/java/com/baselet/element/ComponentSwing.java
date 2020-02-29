@@ -1,17 +1,19 @@
 package com.baselet.element;
 
-import java.awt.Graphics;
-
 import javax.swing.JComponent;
+import java.awt.Graphics;
+import java.util.BitSet;
 
 import com.baselet.control.HandlerElementMap;
 import com.baselet.control.basics.Converter;
 import com.baselet.control.basics.geom.Point;
 import com.baselet.control.basics.geom.Rectangle;
 import com.baselet.diagram.DiagramHandler;
+import com.baselet.diagram.SelectorOld;
 import com.baselet.diagram.draw.DrawHandler;
 import com.baselet.diagram.draw.swing.DrawHandlerSwing;
 import com.baselet.element.interfaces.Component;
+import com.baselet.element.relation.Relation;
 
 public class ComponentSwing extends JComponent implements Component {
 	private static final long serialVersionUID = 1L;
@@ -30,10 +32,17 @@ public class ComponentSwing extends JComponent implements Component {
 	public void paint(Graphics g) {
 		drawer.setGraphics(g);
 		metaDrawer.setGraphics(g);
-		boolean selected = HandlerElementMap.getHandlerForElement(gridElement).getDrawPanel().getSelector().isSelected(gridElement);
+		SelectorOld selector = HandlerElementMap.getHandlerForElement(gridElement).getDrawPanel().getSelector();
+		boolean selected = selector.isSelected(gridElement);
 		drawer.drawAll(selected);
 		if (selected) {
 			metaDrawer.drawAll();
+		} else if (gridElement instanceof Relation) {
+			Relation relation = (Relation) gridElement;
+			if (selector.isRelationJointSelected(relation)) {
+				BitSet selectedJoints = selector.getSelectedRelationJoints(relation);
+				metaDrawer.drawSelectedJoint(relation, selectedJoints);
+			}
 		}
 	}
 

@@ -67,7 +67,7 @@ public abstract class UniversalListener extends ComponentAdapter implements Mous
 			SelectorFrame selframe = selector.getSelectorFrame();
 			diagram.remove(selframe);
 			selector.deselectAll();
-			selector.multiSelect(Converter.convert(selframe.getBounds()));
+			selector.multiSelect(Converter.convert(selframe.getBounds()), handler);
 			selector.setSelectorFrameActive(false);
 			diagram.repaint();
 		}
