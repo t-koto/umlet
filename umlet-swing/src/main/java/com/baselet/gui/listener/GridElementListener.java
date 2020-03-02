@@ -316,6 +316,8 @@ public class GridElementListener extends UniversalListener {
 				if (!(e instanceof Relation))
 					continue;
 				Relation r = (Relation) e;
+				if (entitiesToBeMoved.contains(r))
+					continue;
 
 				for (GridElement ge : entitiesToBeMoved) {
 					StickingPolygon stickingPolygon = ge.generateStickingBorder();
